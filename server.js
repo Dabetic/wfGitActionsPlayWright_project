@@ -9,9 +9,9 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-// const REPO_OWNER = process.env.REPO_OWNER;
-// const REPO_NAME = process.env.REPO_NAME;
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const REPO_OWNER = process.env.REPO_OWNER;
+const REPO_NAME = process.env.REPO_NAME;
 
 app.post('/run-test', async (req, res) => {
   const { link } = req.body;
@@ -19,19 +19,19 @@ app.post('/run-test', async (req, res) => {
   if (!link) return res.status(400).json({ error: 'Missing Webflow link' });
 
   try {
-    // await axios.post(
-    //   `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/dispatches`,
-    //   {
-    //     event_type: 'run-playwright',
-    //     client_payload: { link }
-    //   },
-    //   {
-    //     headers: {
-    //       Accept: 'application/vnd.github.v3+json',
-    //       Authorization: `token ${GITHUB_TOKEN}`
-    //     }
-    //   }
-    // );
+    await axios.post(
+      `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/dispatches`,
+      {
+        event_type: 'run-playwright',
+        client_payload: { link }
+      },
+      {
+        headers: {
+          Accept: 'application/vnd.github.v3+json',
+          Authorization: `token ${GITHUB_TOKEN}`
+        }
+      }
+    );
 
     res.json({ message: '✅ GitHub Action triggered successfully!' });
   } catch (error) {
