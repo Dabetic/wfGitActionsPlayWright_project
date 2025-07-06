@@ -14,7 +14,10 @@ const REPO_OWNER = process.env.REPO_OWNER;
 const REPO_NAME = process.env.REPO_NAME;
 
 app.post('/run-test', async (req, res) => {
+  console.log('stigao request')
   const { link } = req.body;
+
+  console.log(link)
 
   if (!link) return res.status(400).json({ error: 'Missing Webflow link' });
 
