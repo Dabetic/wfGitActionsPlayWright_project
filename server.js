@@ -1,6 +1,8 @@
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config(); // Load from .env
 
 const app = express();
@@ -40,6 +42,18 @@ app.post('/run-test', async (req, res) => {
   } catch (error) {
     console.error(error.response?.data || error.message);
     res.status(500).json({ error: '❌ Failed to trigger GitHub Action' });
+  }
+});
+
+// Novi GET endpoint za čitanje rezultata testa
+app.get('/api/test-result', (req, res) => {
+  const filePath = path.resolve('backend/test-results/playwright-result.txt');
+
+  if (fs.existsSync(filePath)) {
+    const content = fs.readFileSync(filePath, 'utf8');
+    res.type('text/plain').send(content);
+  } else {
+    res.status(404).send('Test result not found');
   }
 });
 
