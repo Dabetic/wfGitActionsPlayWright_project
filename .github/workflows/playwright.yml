@@ -20,20 +20,32 @@ jobs:
 
       - run: npx playwright install --with-deps
 
+      # - name: Run Playwright Tests
+      #   run: |
+      #     echo "Running tests on ${{ github.event.client_payload.link }}"
+      #     TEST_LINK=${{ github.event.client_payload.link }} npx playwright test
+
+      # - name: List result folder
+      #   if: always()
+      #   run: |
+      #     echo "Checking if result file exists..."
+      #     ls -la backend/test-results || echo "Folder does not exist"
+
+      # - name: Upload Playwright result
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: test-result
+      #     path: backend/test-results
+      
       - name: Run Playwright Tests
         run: |
-          echo "Running tests on ${{ github.event.client_payload.link }}"
-          TEST_LINK=${{ github.event.client_payload.link }} npx playwright test
-
-      - name: List result folder
-        if: always()
+          npx playwright test > result.log
+          echo $? > exit-code.txt
+  
+      - name: Send Result Back to Backend
         run: |
-          echo "Checking if result file exists..."
-          ls -la backend/test-results || echo "Folder does not exist"
-
-      - name: Upload Playwright result
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-result
-          path: backend/test-results
+          EXIT_CODE=$(cat exit-code.txt)
+          curl -X POST -H "Content-Type: application/json" \
+            -d '{"status": "'$EXIT_CODE'", "id": "${{ github.event.client_payload.some_id }}"}' \
+            ${{ github.event.client_payload.callback_url }}
