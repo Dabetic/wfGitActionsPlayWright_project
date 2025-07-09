@@ -41,7 +41,7 @@ test('checking meta title', async({page}) => {
     expect(content?.trim()).not.toBe('')
     
 
-    fs.writeFileSync('backend/test-results/playwright-result.txt', `Rezultat testa: ${rezultat}`);
+    fs.writeFileSync('backend/test-rezultati', `Rezultat testa: ${rezultat}`);
 
     
     })
