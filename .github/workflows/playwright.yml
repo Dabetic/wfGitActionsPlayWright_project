@@ -20,6 +20,57 @@ jobs:
 
       - run: npx playwright install --with-deps
 
+      - name: Run Playwright Tests
+        id: run-tests
+        run: |
+          echo "Running tests on ${{ github.event.client_payload.link }}"
+          TEST_LINK=${{ github.event.client_payload.link }} npx playwright test || echo "Test run failed"
+          echo $? > exit-code.txt
+
+      - name: List result folder
+        if: always()
+        run: |
+          echo "Checking if result file exists..."
+          ls -la backend/test-results || echo "Folder does not exist"
+
+      - name: Upload Playwright result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-result
+          path: backend/test-results
+
+      - name: Send Result Back to Backend
+        if: always()
+        run: |
+          EXIT_CODE=$(cat exit-code.txt)
+          echo "Sending test result to backend: ${{ github.event.client_payload.callback_url }}"
+          curl -X POST -H "Content-Type: application/json" \
+            -d '{"status": "'$EXIT_CODE'", "request_id": "${{ github.event.client_payload.request_id }}"}' \
+            ${{ github.event.client_payload.callback_url }}
+
+# name: Run Playwright Tests
+
+# on:
+#   repository_dispatch:
+#     types: [run-playwright]
+
+# jobs:
+#   test:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - uses: actions/checkout@v3
+
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v3
+#         with:
+#           node-version: '18'
+
+#       - run: npm install
+
+#       - run: npx playwright install --with-deps
+
       # - name: Run Playwright Tests
       #   run: |
       #     echo "Running tests on ${{ github.event.client_payload.link }}"
@@ -37,15 +88,4 @@ jobs:
       #   with:
       #     name: test-result
       #     path: backend/test-results
-      
-      - name: Run Playwright Tests
-        run: |
-          npx playwright test > result.log
-          echo $? > exit-code.txt
-  
-      - name: Send Result Back to Backend
-        run: |
-          EXIT_CODE=$(cat exit-code.txt)
-          curl -X POST -H "Content-Type: application/json" \
-            -d '{"status": "'$EXIT_CODE'", "id": "${{ github.event.client_payload.some_id }}"}' \
-            ${{ github.event.client_payload.callback_url }}
+
