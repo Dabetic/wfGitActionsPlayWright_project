@@ -26,6 +26,14 @@ jobs:
           echo "Running tests on ${{ github.event.client_payload.link }}"
           TEST_LINK=${{ github.event.client_payload.link }} npx playwright test || echo "Test run failed"
           echo $? > exit-code.txt
+          TEST_OUTPUT=$(npx playwright test --reporter=line || true)
+          echo "$TEST_OUTPUT"
+          echo "result=$TEST_OUTPUT" >> $GITHUB_OUTPUT
+
+      - name: Use test result
+        run: |
+          echo "Raw output:"
+          echo "${{ steps.run-tests.outputs.result }}"
 
       - name: List result folder
         if: always()
