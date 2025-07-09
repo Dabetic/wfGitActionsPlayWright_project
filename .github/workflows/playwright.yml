@@ -20,6 +20,18 @@ jobs:
 
       - run: npx playwright install --with-deps
 
-      - run: |
+      - name: Run Playwright Tests
+        run: |
           echo "Running tests on ${{ github.event.client_payload.link }}"
           TEST_LINK=${{ github.event.client_payload.link }} npx playwright test
+
+      - name: List files in working directory
+        if: always()
+        run: ls -la backend/test-results
+
+      - name: Upload Playwright result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-result
+          path: backend/test-results
