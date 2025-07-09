@@ -31,14 +31,7 @@ jobs:
           echo "Checking if result file exists..."
           ls -la backend/test-results || echo "Folder does not exist"
 
-      # Ovaj korak šalje fajl sa rezultatima na tvoj backend
-      - name: Upload Playwright result to backend
-        if: always()
-        run: |
-          curl -X POST https://tvoj-backend.com/api/upload-test-result \
-            -F "file=@backend/test-results/playwright-result.txt"
-          
-      - name: Upload Playwright result as artifact (opciono)
+      - name: Upload Playwright result
         if: always()
         uses: actions/upload-artifact@v4
         with:
