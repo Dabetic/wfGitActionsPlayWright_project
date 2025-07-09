@@ -25,13 +25,15 @@ jobs:
           echo "Running tests on ${{ github.event.client_payload.link }}"
           TEST_LINK=${{ github.event.client_payload.link }} npx playwright test
 
-      - name: List files in working directory
+      - name: List result folder
         if: always()
-        run: ls -la backend/test-results
+        run: |
+          echo "Checking if result file exists..."
+          ls -la backend/test-results || echo "Folder does not exist"
 
       - name: Upload Playwright result
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-result
-          path: backend/test-rezultati
+          path: backend/test-results

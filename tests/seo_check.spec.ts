@@ -1,50 +1,39 @@
-import {test, expect} from '@playwright/test'
-
+import { test, expect } from '@playwright/test';
 import fs from 'fs';
+import path from 'path';
 
+test.beforeEach(async ({ page }) => {
+  const link = process.env.TEST_LINK || '';
+  console.log('Opening:', link);
+  await page.goto(link);
+});
 
+test('checking meta title', async ({ page }) => {
+  const metaTitle = page.locator('title').first();
+  await expect(metaTitle).toBeAttached();
 
-test.beforeEach(async ({page}) => {
+  const content = await metaTitle.textContent();
+  console.log('Naslov:', content);
 
-    const link: string = process.env.TEST_LINK || ''
-    console.log(link)
-    await page.goto(link)
+  let rezultat = '';
 
-})
+  if (content && content.trim() !== '') {
+    rezultat = '✅ Sve je ok';
+  } else {
+    rezultat = '❌ Nedostaje meta title';
+  }
 
+  // 👇 Pripremi folder i fajl
+  const resultDir = path.resolve('backend/test-results');
+  const resultPath = path.join(resultDir, 'playwright-result.txt');
 
-test('checking meta title', async({page}) => {
+  // Ako folder ne postoji, kreiraj ga
+  if (!fs.existsSync(resultDir)) {
+    fs.mkdirSync(resultDir, { recursive: true });
+  }
 
-
-    const metaTitle = page.locator('title').first()
-    
-    await expect(metaTitle).toBeAttached()
-    
-    
-    const content = await metaTitle.textContent()
-
-    console.log(content)
-
-    let rezultat: string = ""
-
-    if (content && content.trim() !== '') {
-        rezultat = "✅ Sve je ok"
-        console.log(rezultat);
-      } else {
-        rezultat = "❌ Nedostaje meta title"
-        console.log(rezultat);
-      }
-    
-      console.log('Rezultati nakon' + rezultat)
-    
-    expect(content).not.toBeNull();
-    expect(content?.trim()).not.toBe('')
-    
-
-    fs.writeFileSync('backend/test-rezultati', `Rezultat testa: ${rezultat}`);
-
-    
-    })
+  fs.writeFileSync(resultPath, `Rezultat testa: ${rezultat}`);
+});
 
 
 test.skip('checking meta description', async({page}) => {
