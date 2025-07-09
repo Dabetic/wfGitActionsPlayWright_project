@@ -3,6 +3,7 @@ const axios = require('axios');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const multer = require('multer');
 require('dotenv').config(); // Load from .env
 
 const app = express();
@@ -14,6 +15,9 @@ app.use(express.json());
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const REPO_OWNER = process.env.REPO_OWNER;
 const REPO_NAME = process.env.REPO_NAME;
+
+// Konfiguracija multer-a za privremeni upload folder
+const upload = multer({ dest: 'uploads/' }); // možeš promeniti po želji
 
 app.post('/run-test', async (req, res) => {
   console.log('stigao request')
@@ -45,7 +49,25 @@ app.post('/run-test', async (req, res) => {
   }
 });
 
-// Novi GET endpoint za čitanje rezultata testa
+// Novi endpoint za upload test rezultata
+app.post('/api/upload-test-result', upload.single('file'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).send('No file uploaded.');
+  }
+
+  // Opcionalno premesti fajl na željenu lokaciju
+  const destPath = path.resolve('backend/test-results/playwright-result.txt');
+
+  fs.rename(req.file.path, destPath, (err) => {
+    if (err) {
+      console.error('Failed to save uploaded file:', err);
+      return res.status(500).send('Failed to save file.');
+    }
+    res.send('File uploaded and saved!');
+  });
+});
+
+// GET endpoint za vraćanje sadržaja fajla sa rezultatom
 app.get('/api/test-result', (req, res) => {
   const filePath = path.resolve('backend/test-results/playwright-result.txt');
 
