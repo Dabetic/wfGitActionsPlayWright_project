@@ -43,10 +43,23 @@ jobs:
       - name: Send Result Back to Backend
         if: always()
         run: |
-          EXIT_CODE=$(cat exit-code.txt)
-          echo "Sending test result to backend: ${{ github.event.client_payload.callback_url }}"
+          echo "Preparing ZIP result payload..."
+          RESULT_FILE="backend/test-results/test-result.zip"
+      
+          if [ -f "$RESULT_FILE" ]; then
+            CONTENT=$(base64 "$RESULT_FILE" | tr -d '\n')
+          else
+            CONTENT=""
+          fi
+      
+          echo "Sending result to backend..."
           curl -X POST -H "Content-Type: application/json" \
-            -d '{"status": "'$EXIT_CODE'", "request_id": "${{ github.event.client_payload.request_id }}"}' \
+            -d '{
+              "status": "'${{ env.EXIT_CODE }}'",
+              "request_id": "${{ github.event.client_payload.request_id }}",
+              "result_file_base64": "'"$CONTENT"'",
+              "filename": "test-result.zip"
+            }' \
             ${{ github.event.client_payload.callback_url }}
 
 # name: Run Playwright Tests
