@@ -22,7 +22,18 @@ jobs:
 
       - name: Set Test Result Variable
         id: set-result
-        run: echo "result=testing" >> $GITHUB_OUTPUT
+        run: |
+          echo "Running tests on ${{ github.event.client_payload.link }}"
+          TEST_LINK=${{ github.event.client_payload.link }}
+          
+          # Capture test output (stdout and stderr)
+          OUTPUT=$(TEST_LINK=$TEST_LINK npx playwright test 2>&1 || true)
+          echo "$OUTPUT"
+
+          # Set output for later step
+          echo "result<<EOF" >> $GITHUB_OUTPUT
+          echo "$OUTPUT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Send Result to Backend
         run: |
