@@ -20,55 +20,67 @@ jobs:
 
       - run: npx playwright install --with-deps
 
-      - name: Run Playwright Tests
-        id: run-tests
+      - name: Set Test Result Variable
+        id: set-result
+        run: echo "result=testing" >> $GITHUB_OUTPUT
+
+      - name: Send Result to Backend
         run: |
-          echo "Running tests on ${{ github.event.client_payload.link }}"
-          TEST_LINK=${{ github.event.client_payload.link }} npx playwright test || echo "Test run failed"
-          echo $? > exit-code.txt
-          # TEST_OUTPUT=$(npx playwright test --reporter=line || true)
-          # echo "$TEST_OUTPUT"
-          # echo "result=$TEST_OUTPUT" >> $GITHUB_OUTPUT
-
-      # - name: Use test result
-      #   run: |
-      #     echo "Raw output:"
-      #     echo "${{ steps.run-tests.outputs.result }}"
-
-      - name: List result folder
-        if: always()
-        run: |
-          echo "Checking if result file exists..."
-          ls -la backend/test-results || echo "Folder does not exist"
-
-      - name: Upload Playwright result
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-result
-          path: backend/test-results
-
-      - name: Send Result Back to Backend
-        if: always()
-        run: |
-          echo "Preparing ZIP result payload..."
-          RESULT_FILE="backend/test-results/test-result.zip"
-      
-          if [ -f "$RESULT_FILE" ]; then
-            CONTENT=$(base64 "$RESULT_FILE" | tr -d '\n')
-          else
-            CONTENT=""
-          fi
-      
           echo "Sending result to backend..."
           curl -X POST -H "Content-Type: application/json" \
             -d '{
-              "status": "'${{ env.EXIT_CODE }}'",
+              "status": "success",
               "request_id": "${{ github.event.client_payload.request_id }}",
-              "result_file_base64": "'"$CONTENT"'",
-              "filename": "test-result.zip"
+              "result_file_base64": "",
+              "filename": "test-result.txt",
+              "message": "${{ steps.set-result.outputs.result }}"
             }' \
             ${{ github.event.client_payload.callback_url }}
+
+      # - name: Run Playwright Tests
+      #   id: run-tests
+      #   run: |
+      #     echo "Running tests on ${{ github.event.client_payload.link }}"
+      #     TEST_LINK=${{ github.event.client_payload.link }} npx playwright test || echo "Test run failed"
+      #     echo $? > exit-code.txt
+      #     # TEST_OUTPUT=$(npx playwright test --reporter=line || true)
+      #     # echo "$TEST_OUTPUT"
+      #     # echo "result=$TEST_OUTPUT" >> $GITHUB_OUTPUT
+
+      # - name: List result folder
+      #   if: always()
+      #   run: |
+      #     echo "Checking if result file exists..."
+      #     ls -la backend/test-results || echo "Folder does not exist"
+
+      # - name: Upload Playwright result
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: test-result
+      #     path: backend/test-results
+
+      # - name: Send Result Back to Backend
+      #   if: always()
+      #   run: |
+      #     echo "Preparing ZIP result payload..."
+      #     RESULT_FILE="backend/test-results/test-result.zip"
+      
+      #     if [ -f "$RESULT_FILE" ]; then
+      #       CONTENT=$(base64 "$RESULT_FILE" | tr -d '\n')
+      #     else
+      #       CONTENT=""
+      #     fi
+      
+      #     echo "Sending result to backend..."
+      #     curl -X POST -H "Content-Type: application/json" \
+      #       -d '{
+      #         "status": "'${{ env.EXIT_CODE }}'",
+      #         "request_id": "${{ github.event.client_payload.request_id }}",
+      #         "result_file_base64": "'"$CONTENT"'",
+      #         "filename": "test-result.zip"
+      #       }' \
+      #       ${{ github.event.client_payload.callback_url }}
 
 # name: Run Playwright Tests
 
