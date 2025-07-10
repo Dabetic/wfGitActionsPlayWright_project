@@ -34,10 +34,7 @@ jobs:
           echo "Sending result to backend..."
           curl -X POST -H "Content-Type: application/json" \
             -d '{
-              "status": "success",
               "request_id": "${{ github.event.client_payload.request_id }}",
-              "result_file_base64": "",
-              "filename": "test-result.txt",
               "message": "${{ steps.set-result.outputs.result }}"
             }' \
             ${{ github.event.client_payload.callback_url }}
