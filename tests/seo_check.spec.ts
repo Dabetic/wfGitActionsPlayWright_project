@@ -18,9 +18,9 @@ test('checking meta title', async ({ page }) => {
   let rezultat = '';
 
   if (content && content.trim() !== '') {
-    rezultat = '✅ Sve je ok';
+    rezultat = 'Sve je ok';
   } else {
-    rezultat = '❌ Nedostaje meta title';
+    rezultat = 'Nedostaje meta title';
   }
 
   // 👇 Pripremi folder i fajl
@@ -33,6 +33,8 @@ test('checking meta title', async ({ page }) => {
   }
 
   fs.writeFileSync(resultPath, `Rezultat testa: ${rezultat}`);
+
+  console.log(`FINAL_RESULT::${rezultat}`);
 });
 
 
